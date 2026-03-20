@@ -87,7 +87,7 @@ def parse_fasta(fasta_file, output_dir):
     # Convert to json format
     sequences = []
     
-    #msa_ndx = 1
+    msa_ndx = 1
     for ndx, seq_record in enumerate(records):
         if "|" not in seq_record.id:
             count, entity_type = 1, 'protein'
@@ -114,6 +114,16 @@ def parse_fasta(fasta_file, output_dir):
                 "modifications": modifications
                 }
             }
+            msa_save_dir = Path(output_dir) / 'msa' / str(msa_ndx)
+            unpairedMsaPath = msa_save_dir / "non_pairing.a3m" 
+            pairedMsaPath = msa_save_dir / "pairing.a3m" 
+            if  unpairedMsaPath.exists() or  pairedMsaPath.exists():
+                if  unpairedMsaPath.exists():
+                    molecule["protein"]["unpairedMsaPath"] = unpairedMsaPath.as_posix() 
+                if  pairedMsaPath.exists():
+                    molecule["protein"]["pairedMsaPath"] = pairedMsaPath.as_posix()
+                msa_ndx += 1
+
         elif entity_type == "RNA":
              molecule = {
                 "rna": {
@@ -137,20 +147,19 @@ def parse_fasta(fasta_file, output_dir):
                 "id": string.ascii_uppercase[ndx],
                 }
             }
-            #if seq.startswith('['):
-            #    molecule['ligand']['ccdCodes'] = eval(seq)
-            if len(seq) == 3:
-                molecule['ligand']['ccdCodes'] = [seq]
+            if seq.startswith('['):
+                molecule['ligand']['ccdCodes'] = eval(seq)
             else:
                 molecule['ligand']['smiles'] = seq
                 
-        elif entity_type.upper() == "ION":
-            molecule = {
-                "ion": {
-                    "ion": seq,
-                    "count": count
-                }
-            }
+        #elif entity_type.upper() == "ION":
+        #    molecule = {
+        #        "ion": {
+        #            "id": string.ascii_uppercase[ndx],
+        #            "ion": seq,
+        #            "count": count
+        #        }
+        #    }
 
         sequences.append(molecule)
     
